@@ -1,0 +1,15 @@
+{
+  "radar_name": "BLR_DWR_RADAR",
+  "product_name": "CAPPI_2KM",
+  "observation_time": "2026-09-08T15:20:53.464323+00:00",
+  "bbox": {
+    "min_lon": 77.3,
+    "max_lon": 77.9,
+    "min_lat": 12.7,
+    "max_lat": 13.3
+  },
+  "mean_reflectivity_dbz": 34.3,
+  "max_reflectivity_dbz": 52.3,
+  "mean_rainfall_rate_mmh": 5.08,
+  "zr_formula": "Z = 200 * R^1.6 (Marshall-Palmer)"
+}

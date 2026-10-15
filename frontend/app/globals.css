@@ -1,0 +1,159 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+:root {
+  --background: #0b121e;
+  --foreground: #e2e8f0;
+  --google-card-bg: rgba(22, 33, 54, 0.78);
+  --google-card-hover: rgba(30, 45, 74, 0.90);
+  --google-card-border: rgba(255, 255, 255, 0.08);
+  --google-blue: #8ab4f8;
+  --google-blue-dark: #1a73e8;
+  --google-yellow: #fdd663;
+  --google-red: #f28b82;
+  --google-green: #81c995;
+  --google-cyan: #78d9ec;
+  --google-purple: #c58af9;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Google Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+  background-attachment: fixed;
+}
+
+/* Google Weather Material Card Style */
+.google-card {
+  background: var(--google-card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--google-card-border);
+  border-radius: 1.75rem; /* 28px Material You radius */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.google-card:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.google-card-interactive:hover {
+  transform: translateY(-2px);
+  background: var(--google-card-hover);
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* Google Weather Atmospheric Hero Gradient */
+.google-weather-hero {
+  background: radial-gradient(circle at 80% 20%, rgba(30, 64, 175, 0.35), transparent 45%),
+              linear-gradient(180deg, #162644 0%, #111d33 60%, #0b121e 100%);
+  border: 1px solid rgba(138, 180, 248, 0.15);
+  border-radius: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Material Chip / Pill Button */
+.google-pill {
+  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.google-pill-active {
+  background: #8ab4f8;
+  color: #0b121e;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(138, 180, 248, 0.35);
+}
+
+.google-pill-inactive {
+  background: rgba(255, 255, 255, 0.07);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.google-pill-inactive:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
+}
+
+/* Custom Leaflet Map Google Earth / Dark Styling */
+.leaflet-container {
+  background: #0b121e !important;
+  font-family: inherit !important;
+  border-radius: 1.75rem !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: rgba(17, 29, 51, 0.95) !important;
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(138, 180, 248, 0.25) !important;
+  border-radius: 1.25rem !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.65) !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(17, 29, 51, 0.95) !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(11, 18, 30, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Weather Animation Keyframes */
+@keyframes rain-drop {
+  0% {
+    transform: translateY(-8px) scaleY(0.8);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(12px) scaleY(1.2);
+    opacity: 0;
+  }
+}
+
+.animate-rain-drop {
+  animation: rain-drop 1.2s infinite ease-in;
+}
+
+@keyframes pulse-radar {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.animate-radar-wave {
+  animation: pulse-radar 2.4s infinite cubic-bezier(0.1, 0.2, 0.3, 1);
+}

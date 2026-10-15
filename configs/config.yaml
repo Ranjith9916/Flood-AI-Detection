@@ -1,0 +1,163 @@
+﻿# =============================================================
+# FLOOD AI SYSTEM - Application Configuration
+# =============================================================
+# Non-secret configuration. Secret values (passwords, API keys)
+# must be in .env — never in this file.
+# =============================================================
+
+application:
+  name: "AI/ML-Based Integrated Heavy Rainfall Early Warning and Inundation Prediction System"
+  version: "0.1.0"
+  environment: development
+
+# ---- Study Area ----
+# Default: Bangalore Metropolitan Region, Karnataka, India
+study_area:
+  name: "Bangalore Metropolitan Region"
+  bbox:
+    lon_min: 77.35
+    lat_min: 12.75
+    lon_max: 77.85
+    lat_max: 13.20
+  crs: "EPSG:4326"
+
+# ---- Rainfall Thresholds (IMD classification, mm/24h) ----
+# Source: India Meteorological Department (IMD) rainfall classification
+rainfall_thresholds:
+  no_rain: 0.0
+  light: 2.5
+  moderate: 15.6
+  heavy: 64.5
+  very_heavy: 115.5
+  extremely_heavy: 204.5
+
+# ---- Flood Risk Levels (flood probability 0.0–1.0) ----
+risk_thresholds:
+  low:       [0.00, 0.35)
+  moderate:  [0.35, 0.55)
+  high:      [0.55, 0.70)
+  very_high: [0.70, 0.85)
+  extreme:   [0.85, 1.00]
+
+# ---- Alert Severity Levels ----
+# Triggers are flood probability thresholds
+alert_triggers:
+  INFO:           { flood_prob: 0.20, heavy_rain_prob: 0.30 }
+  WATCH:          { flood_prob: 0.35, heavy_rain_prob: 0.50 }
+  ADVISORY:       { flood_prob: 0.50, heavy_rain_prob: 0.65 }
+  WARNING:        { flood_prob: 0.60, heavy_rain_prob: 0.75 }
+  SEVERE_WARNING: { flood_prob: 0.75, heavy_rain_prob: 0.85 }
+  EMERGENCY:      { flood_prob: 0.90, heavy_rain_prob: 0.95 }
+
+# ---- Forecast Horizons ----
+forecast:
+  horizons_h: [1, 3, 6, 12, 24]
+
+# ---- ML Models ----
+ml:
+  models_dir: "ml/models"
+  data_dir: "ml/data"
+  features_dir: "ml/data/features"
+  mlflow_experiment: "flood-ai-experiments"
+
+  # Features used for heavy rainfall classification
+  heavy_rain_features:
+    - rainfall_1h_mm
+    - rainfall_3h_mm
+    - rainfall_6h_mm
+    - rainfall_12h_mm
+    - rainfall_24h_mm
+    - temperature_c
+    - humidity_percent
+    - pressure_hpa
+    - pressure_change_3h
+    - wind_speed_ms
+    - forecast_rainfall_mm
+    - satellite_rainfall_mm
+    - elevation_m
+    - slope_deg
+    - distance_to_river_m
+
+# ---- Data Pipeline Schedules ----
+pipeline:
+  weather_cron:     "0 * * * *"       # Every hour
+  rainfall_cron:    "0 * * * *"       # Every hour
+  satellite_cron:   "0 */3 * * *"     # Every 3 hours
+  nwp_cron:         "0 */6 * * *"     # Every 6 hours
+  predictions_cron: "15 * * * *"      # 15 min past every hour
+  alerts_cron:      "20 * * * *"      # 20 min past every hour
+
+# ---- Data Sources (documentation, not secrets) ----
+data_sources:
+  weather:
+    provider: "Open-Meteo"
+    url: "https://api.open-meteo.com/v1/forecast"
+    variables:
+      - temperature_2m
+      - relative_humidity_2m
+      - surface_pressure
+      - wind_speed_10m
+      - wind_direction_10m
+      - precipitation
+    resolution: "hourly"
+    temporal_frequency: "hourly"
+    license: "CC BY 4.0"
+    requires_auth: false
+
+  satellite:
+    provider: "NASA GPM"
+    product: "IMERG Final Run V07"
+    url: "https://gpm.nasa.gov/data/imerg"
+    resolution: "0.1 deg (~11km)"
+    temporal_frequency: "30min"
+    license: "Public domain"
+    requires_auth: true
+    auth_system: "NASA Earthdata"
+    note: >
+      Requires NASA Earthdata account.
+      Set NASA_EARTHDATA_USERNAME and NASA_EARTHDATA_PASSWORD in .env.
+
+  nwp:
+    provider: "NOAA GFS"
+    url: "https://nomads.ncep.noaa.gov/dods"
+    resolution: "0.25 deg"
+    temporal_frequency: "6h initialization, 1h output"
+    license: "Public domain"
+    requires_auth: false
+    dev_provider: "Open-Meteo WMO Forecast"
+
+  dem:
+    provider: "SRTM / Copernicus DEM"
+    url: "https://lpdaac.usgs.gov/products/srtmgl1v003/"
+    resolution: "30m (1 arc-second)"
+    license: "Public domain"
+    requires_auth: false
+    note: "Download via USGS EarthExplorer or opentopography.org"
+
+  land_use:
+    provider: "ESA WorldCover"
+    url: "https://esa-worldcover.org/en"
+    year: 2021
+    resolution: "10m"
+    license: "CC BY 4.0"
+    requires_auth: false
+
+# ---- Geospatial Settings ----
+geospatial:
+  dem:
+    raw_dir: "geospatial/dem/raw"
+    processed_dir: "geospatial/dem/processed"
+    target_crs: "EPSG:4326"
+    target_resolution_m: 30
+
+  land_use:
+    raw_dir: "geospatial/landuse"
+    target_crs: "EPSG:4326"
+
+  rivers:
+    raw_dir: "geospatial/rivers"
+    target_crs: "EPSG:4326"
+
+  catchments:
+    raw_dir: "geospatial/catchments"
+    target_crs: "EPSG:4326"

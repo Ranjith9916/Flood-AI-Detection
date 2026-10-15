@@ -1,0 +1,141 @@
+﻿# =============================================================
+# FLOOD AI SYSTEM - Docker Compose
+# =============================================================
+# Services:
+#   postgres  - PostgreSQL 17 + PostGIS 3.5
+#   redis     - Redis 7 for caching and queues
+#   backend   - FastAPI application
+#   mlflow    - MLflow experiment tracking
+#   frontend  - Next.js dashboard
+# =============================================================
+
+services:
+
+  # ---- PostgreSQL + PostGIS ----
+  postgres:
+    image: postgis/postgis:17-3.5
+    container_name: flood-ai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: flood_ai
+      POSTGRES_USER: flood_admin
+      POSTGRES_PASSWORD: flood_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flood_admin -d flood_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - flood-net
+
+  # ---- Redis ----
+  redis:
+    image: redis:7-alpine
+    container_name: flood-ai-redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - flood-net
+
+  # ---- Backend (FastAPI) ----
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: flood-ai-backend
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+psycopg://flood_admin:flood_password@postgres:5432/flood_ai
+      REDIS_URL: redis://redis:6379/0
+      CORS_ORIGINS: http://localhost:3000,http://frontend:3000
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      LOG_LEVEL: INFO
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./ml/data:/app/ml/data
+      - ./ml/models:/app/ml/models
+      - ./outputs:/app/outputs
+      - ./geospatial:/app/geospatial
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - flood-net
+
+  # ---- MLflow Tracking Server ----
+  mlflow:
+    image: python:3.11-slim
+    container_name: flood-ai-mlflow
+    restart: unless-stopped
+    command: >
+      sh -c "pip install mlflow psycopg2-binary -q &&
+             mlflow server
+             --backend-store-uri postgresql://flood_admin:flood_password@postgres:5432/flood_ai
+             --default-artifact-root /mlflow/artifacts
+             --host 0.0.0.0
+             --port 5000"
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow/artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - flood-net
+
+  # ---- Frontend (Next.js) ----
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: flood-ai-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - flood-net
+
+
+# ---- Volumes ----
+volumes:
+  postgres_data:
+  redis_data:
+  mlflow_data:
+
+
+# ---- Networks ----
+networks:
+  flood-net:
+    driver: bridge

@@ -1,0 +1,17 @@
+{
+  "elevation_mean": 870.7302215013079,
+  "elevation_min": 776.559538572268,
+  "elevation_max": 976.2339385490079,
+  "slope_mean": 3.919554,
+  "slope_max": 8.32,
+  "twi_mean": 10.617535,
+  "twi_max": 15.45,
+  "hand_mean": 67.00294199999999,
+  "bbox": {
+    "min_lon": 77.35,
+    "max_lon": 77.85,
+    "min_lat": 12.75,
+    "max_lat": 13.2
+  },
+  "resolution_m": 30.0
+}
